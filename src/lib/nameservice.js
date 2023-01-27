@@ -326,12 +326,14 @@ export async function renew(domain) {
   );
 }
 
-export function generate_zonefile_stub(domain, profile_url) {
+export function generate_zonefile_stub(domain, profile_url, nostr_pubkey) {
   domain = clean_check_domain(domain);
   const zone_object = { $origin: `${domain}.${DOMAIN_NAMESPACE}.`, $ttl: 3600 };
   if (profile_url)
     zone_object.uri = [
       { name: "_http._tcp", priority: 10, weight: 1, target: profile_url },
     ];
+
+  if (nostr_pubkey) zone_object.txt = [{ name: "_._nostr", txt: nostr_pubkey }];
   return zone_object;
 }

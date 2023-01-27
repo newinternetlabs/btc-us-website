@@ -6,7 +6,7 @@
 	segment = segment;
 </script>
 <nav class="main solid">
-	<a href="/" class="home"><span>btc.us</span></a>{process.env.NETWORK !== 'mainnet' ? ' '+process.env.NETWORK : ''}
+	<a href="/" class="home"><span>btc.nostrnames.org</span></a>{process.env.NETWORK !== 'mainnet' ? ' '+process.env.NETWORK : ''}
 	<span class="spacer"></span>
 	<a href="/web-bridge" class="em">Web Bridge</a>
 	<a href="/#faq" class="hide_mobile">{$t('nav.faq')}</a>

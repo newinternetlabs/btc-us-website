@@ -67,19 +67,9 @@
 	<div>
 		<a class="flat" href="https://stacks.co">Powered by <strong>Bitcoin</strong> + <span class="stacks">Stacks</span></a>
 	</div>
-	<div>
-		<a class="emphasis" href="https://www.hiro.so/p/terms-privacy" target="_blank">{$t('footer.terms_privacy')}</a>
-		<a class="emphasis" href="/#support">{$t('footer.support')}</a>
-	</div>
 	<div class="spacer"></div>
 	<div>
-		<a class="emphasis" href="https://discord.gg/zrvWsQC" target="_blank">Discord</a>
-		<a class="emphasis" href="https://github.com/hirosystems/btc-us-website" target="_blank">GitHub</a>
-		<a class="emphasis" href="https://twitter.com/stacks" target="_blank">Twitter</a>
-	</div>
-	<div class="languages">
-		{#each Object.entries(locales) as [locale_string,language]}
-			<span class="language" on:click|preventDefault={() => locale.set(locale_string)}>{language}</span>
-		{/each}
+		<a class="emphasis" href="https://github.com/newinternetlabs/btc-us-website/tree/btc.nostrnames.org" target="_blank">GitHub</a>
+		<a class="emphasis" href="https://twitter.com/newinternetlabs" target="_blank">Twitter</a>
 	</div>
 </footer>

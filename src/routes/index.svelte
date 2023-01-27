@@ -88,7 +88,7 @@
 	}
 </style>
 <svelte:head>
-	<title>btc.us</title>
+	<title>btc.nostrnames.org</title>
 </svelte:head>
 <header>
 	<div>
@@ -145,15 +145,3 @@
 		{/each}
 	</section>
 </article>
-<div class="wrapper">
-	<article class="metaverse text_centered" id="support">
-		<section>
-			<h1>{$t('page.index.community_title')}</h1>
-			<div class="display_columns social_columns">
-				<a class="discord" href="https://discord.gg/zrvWsQC" target="_blank">Discord</a>
-				<a class="github" href="https://github.com/hirosystems/btc-us-website" target="_blank">GitHub</a>
-				<a class="twitter" href="https://twitter.com/stacks" target="_blank">Twitter</a>
-			</div>
-		</section>
-	</article>
-</div>

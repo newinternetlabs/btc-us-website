@@ -20,6 +20,8 @@
 	import Accordion from '../../components/accordion.svelte';
 	
 	const {page} = stores();
+	
+	let nostr_pubkey = ""
 	let domain_name = get(page).params.domain_name.toLowerCase();
 	if (domain_name.slice(-DOMAIN_NAMESPACE.length-1) !== `.${DOMAIN_NAMESPACE}`)
 		domain_name += `.${DOMAIN_NAMESPACE}`;
@@ -35,6 +37,12 @@
 		stx: domain_purchase_prepare,
 	};
 
+	function is_nostr_pubkey_valid(pubkey) {
+		let trimmed_key = pubkey.trim()
+		if (trimmed_key.length != pubkey.length)
+			return false
+		return pubkey && pubkey.length && pubkey.length == 64	
+	}
 	async function try_again()
 		{
 		if (await delete_domain_status(domain_name) === null)
@@ -69,10 +77,10 @@
 			}
 		}
 
-	async function send_purchase_tx(func,domain)
+	async function send_purchase_tx(func,domain, nostr_pubkey)
 		{
 		// Glue function because onCancel is not yet implemented in Connect.
-		const status = func(domain);
+		const status = func(domain, nostr_pubkey);
 		await status;
 		purchase_status =  status;
 		}
@@ -321,7 +329,14 @@
 					<p>{$t('page.get.signed_in_as')} ID-{stx_address()}</p>
 				{/if}
 			</div>
+			<h2>
+				Enter your Nostr public key in hex format
+			</h2>
+			<form class="nostr-key-input">
+				<input type="text" name="pubkey" bind:value={nostr_pubkey} placeholder="8a9cf8235533..." autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="64" size="64"/>
+			</form>
 			<div class="confirm">
+				<p>To convert your <code>npub</code> format public key, use the key converter tool <a href="https://astral.ninja/devtools" target="_blank">here</a>.</p>
 				<p>{$t('page.get.purchase_confirmation')}</p>
 				<p>{$t('page.get.select_payment_method')}</p>
 			</div>
@@ -330,12 +345,19 @@
 					<label class="{option}" class:selected={payment_method === option}>
 						<input type="radio" bind:group={payment_method} value={option}/>
 						{$t(`components.${option}`)}
-						<div class="cost">({#if option !== 'usd'}&asymp; {/if}{#if option === 'stx' && 0}{$domain_fiat_price}{:else}US$5.00{/if})</div>
+						<div class="cost">({#if option !== 'usd'}&asymp; {/if}{#if option === 'stx' && 0}{$domain_fiat_price}{:else}2 STX{/if})</div>
 					</label>
 				{/each}
 			</div>
-			<p>Fiat and BTC payment options temporarily disabled, get <a target="_blank" href="https://coinmarketcap.com/currencies/stacks/markets/">Stacks</a>.</p>
+			<p>Get Stacks via <a href="https://www.lnswap.org" target="_blank">a Lightning/BTC swap</a> or <a target="_blank" href="https://coinmarketcap.com/currencies/stacks/markets/">an exchange</a>.</p>
+			{#if !is_nostr_pubkey_valid(nostr_pubkey)}
+			<div class="button disabled" disabled={true} on:click={() => {}}>Enter a valid Nostr public key</div>
+			{:else}
 			<div class="button" on:click={confirm}>{$t('page.get.confirm')}</div>
+			{/if} 
+			
+			
+
 		{:else if step === 3}
 			{#await purchase_status}
 				<Loading/>
@@ -349,12 +371,14 @@
 				<h2>1. {$t('page.get.preorder')} <span>{$t('page.get.preorder_does')}</span></h2>
 				{#if !status.preorder}
 					<div class="button" on:click={() => {send_purchase_tx(domain_purchase_preorder,domain_name)}}>Send</div>
+					<div class="button" on:click={() => {send_purchase_tx(domain_purchase_register,domain_name,nostr_pubkey.trim())}}>Send</div>
+
 				{:else}
 					<TransactionHash tx_hash={status.preorder.txid} chain="stx"/>
 				{/if}
 				<h2>2. {$t('page.get.register')} <span>{$t('page.get.register_does')}</span></h2>
 				{#if !status.register}
-					<div class="button" class:disabled={!status.preorder} on:click={() => {if (status.preorder) send_purchase_tx(domain_purchase_register,domain_name)}}>Send</div>
+					<div class="button" class:disabled={!status.preorder} on:click={() => {if (status.preorder) send_purchase_tx(domain_purchase_register,domain_name,nostr_pubkey.trim())}}>Send</div>
 				{:else}
 					<TransactionHash tx_hash={status.register.txid} chain="stx"/>
 				{/if}
