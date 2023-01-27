@@ -164,6 +164,7 @@
 
 	async function simple_website_redirect(zonefile,check_only)
 		{
+			return // disable
 		if (zonefile.$_simple_redirect)
 			return;
 		let uri_record;
@@ -540,39 +541,7 @@
 								</td>
 							</tr>
 						{/await}
-						{#await domain_zonefiles[selected]}
-							<tr>
-								<th>{$t('page.manage.domain_redirect')}</th>
-								<td><Loading/></td>
-							</tr>
-						{:then zonefile}
-							<tr>
-								<th>{$t('page.manage.domain_redirect')}</th>
-								<td>
-									{#if zonefile.$_simple_redirect}
-										{#each zonefile.$_simple_redirect as uri_record}
-											<label class:editing={zonefile.$_editing_redirect}>
-												<input type="text" disabled={!zonefile.$_editing_redirect} name="redirect" bind:value={uri_record.target} on:input={() => zonefile_changed  = true} autocomplete="off"/>
-											</label>
-										{/each}
-									{:else}
-										{$t('components.none')}
-									{/if}
-								</td>
-								<td>
-									<span title="{$t('page.manage.edit')}" class="action edit" on:click={() =>
-										{
-										simple_website_redirect(zonefile);
-										zonefile.$_editing_redirect = !zonefile.$_editing_redirect;
-										}
-									}></span>
-								</td>
-							</tr>
-						{/await}
 					</table>
-					<p class="footnote">
-						{$t('page.manage.domain_redirect_footnote')}
-					</p>
 					{#if zonefile_changed}
 						{#await domain_zonefiles[selected] then zonefile}
 							<span class="button update" on:click={() => update_zonefile(selected,zonefile)}>{$t('page.manage.save_changes')}</span>
