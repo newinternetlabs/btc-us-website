@@ -60,6 +60,7 @@
 			domain_transactions[selected] = fetch_domain_status(selected);
 		zonefile_changed = false;
 		domain_zonefiles[selected].then(zonefile => simple_website_redirect(zonefile,true));
+		domain_zonefiles[selected].then(zonefile => nostr_pubkey(zonefile, true))
 		domain_transactions[selected].then(status => status && status.transfer_out && !status.transfer_out.failed && monitor_transfer(selected));
 		get_address_stx_balance(stx_address()).then(balance => low_balance = balance.lt(new BN('100000')));
 		}
@@ -179,6 +180,27 @@
 			zonefile.a = [{name: '@', ip: process.env.REDIRECT_SERVICE_IP}];
 		if (uri_record)
 			zonefile.$_simple_redirect = [uri_record];
+		domain_zonefiles = domain_zonefiles;
+		}
+		
+		async function nostr_pubkey(zonefile,check_only)
+		{
+		if (zonefile.$_nostr_pubkey)
+			return;
+		let txt_record;
+		if (zonefile.txt && zonefile.txt.length)
+			txt_record = zonefile.txt.reduce((a,c) => a || c.name === '_._nostr' && c,undefined);
+		if (!txt_record && !check_only && nostr_pubkey != null)
+			{
+			txt_record = {name: '_._nostr', txt: ""};
+			if (!zonefile.txt)
+				zonefile.txt = [];
+			zonefile.txt.push(txt_record);
+			}
+		// if (!check_only)
+		// 	zonefile.txt.push([{name: '_relays._nostr', txt: "wss://relay.example.com"]);
+		if (txt_record)
+			zonefile.$_nostr_pubkey = [txt_record];
 		domain_zonefiles = domain_zonefiles;
 		}
 
@@ -489,6 +511,35 @@
 							</td>
 							<td></td>
 						</tr>
+						{#await domain_zonefiles[selected]}
+							<tr>
+								<th>Nostr pubkey</th>
+								<td><Loading/></td>
+							</tr>
+						{:then zonefile}
+							<tr>
+								<th>Nostr public key</th>
+								<td>
+									{#if zonefile.$_nostr_pubkey}
+										{#each zonefile.$_nostr_pubkey as txt_record}
+											<label class:editing={zonefile.$_editing_nostr}>
+												<input type="text" disabled={!zonefile.$_editing_nostr} name="nostr" bind:value={txt_record.txt} on:input={() => zonefile_changed  = true} autocomplete="off"/>
+											</label>
+										{/each}
+									{:else}
+										{$t('components.none')}
+									{/if}
+								</td>
+								<td>
+									<span title="{$t('page.manage.edit')}" class="action edit" on:click={() =>
+										{
+										simple_website_redirect(zonefile);
+										zonefile.$_editing_nostr = !zonefile.$_editing_nostr;
+										}
+									}></span>
+								</td>
+							</tr>
+						{/await}
 						{#await domain_zonefiles[selected]}
 							<tr>
 								<th>{$t('page.manage.domain_redirect')}</th>
