@@ -371,8 +371,6 @@
 				<h2>1. {$t('page.get.preorder')} <span>{$t('page.get.preorder_does')}</span></h2>
 				{#if !status.preorder}
 					<div class="button" on:click={() => {send_purchase_tx(domain_purchase_preorder,domain_name)}}>Send</div>
-					<div class="button" on:click={() => {send_purchase_tx(domain_purchase_register,domain_name,nostr_pubkey.trim())}}>Send</div>
-
 				{:else}
 					<TransactionHash tx_hash={status.preorder.txid} chain="stx"/>
 				{/if}
