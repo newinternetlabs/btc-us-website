@@ -534,7 +534,7 @@
 								<td>
 									<span title="{$t('page.manage.edit')}" class="action edit" on:click={() =>
 										{
-										simple_website_redirect(zonefile);
+										nostr_pubkey(zonefile)
 										zonefile.$_editing_nostr = !zonefile.$_editing_nostr;
 										}
 									}></span>
