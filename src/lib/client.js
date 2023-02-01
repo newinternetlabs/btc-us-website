@@ -59,6 +59,8 @@ export async function domain_status(domain) {
   const file = status_file_name(domain);
   let status = await json_safe(file);
   if (!status) {
+    // No payment api supported on btc.nostrnames.org
+    return null;
     let api_status = await fetch_api_domain_status(domain);
     if (api_status && api_status.domain) {
       status = {
