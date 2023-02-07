@@ -26,7 +26,7 @@ import {
 } from "../session";
 
 export const DOMAIN_CHARACTER_REGEX = /[^0-9a-z_+-]/;
-export const DOMAIN_VALIDITY_REGEX = /[0-9a-z_+-]{3,32}\.btc/;
+export const DOMAIN_VALIDITY_REGEX = /[0-9a-z_+-]{3,32}\.[0-9a-z_+-]{2,10}/; // unsure offhand how long namespaces can be
 export const DOMAIN_NAMESPACE = "btc";
 
 export const DOMAIN_MIN_LENGTH = 3;
@@ -92,14 +92,29 @@ async function zonefile_hash(zonefile) {
   return hash160(Buffer.from(zonefile));
 }
 
-export function clean_check_domain(domain) {
+/*
+  This function returns the part of the name to the left of the period and tld.
+  It was designed to restrict this site to .btc only. Making some dirty changes
+  work with any tld.
+  
+  restrict_name space set to true should keep the original behavior
+*/
+export function clean_check_domain(domain, restrict_namespace = true) {
   if (typeof domain !== "string") throw new Error("Domain is not a string");
   domain = domain.toLowerCase();
-  if (domain.substr(-4) === "." + DOMAIN_NAMESPACE)
-    domain = domain.substr(0, domain.length - DOMAIN_NAMESPACE.length - 1);
-  if (!DOMAIN_VALIDITY_REGEX.test(domain + "." + DOMAIN_NAMESPACE))
-    throw new Error("Domain is invalid");
-  return domain;
+  const namespace = domain.split(".")[1];
+  if (restrict_namespace) {
+    if (domain.substr(-4) === "." + DOMAIN_NAMESPACE)
+      domain = domain.substr(0, domain.length - DOMAIN_NAMESPACE.length - 1);
+    if (!DOMAIN_VALIDITY_REGEX.test(domain + "." + namespace))
+      throw new Error("Domain is invalid");
+    return domain;
+  } else {
+    domain = domain.split(".")[0];
+    if (!DOMAIN_VALIDITY_REGEX.test(domain + "." + namespace))
+      throw new Error("Domain is invalid");
+    return { domain, namespace };
+  }
 }
 
 async function contract_write(func, args, post_conditions, attachment) {
@@ -181,18 +196,22 @@ export async function available(domain) {
 }
 
 export async function owner(domain) {
+  console.log(`owner: ${domain}`);
   let result = await resolve(domain);
   return result && result.owner && result.owner.value;
 }
 
 export async function owns(domain) {
+  console.log(`owns: ${domain}`);
   return stx_address() === (await owner(domain));
 }
 
 export async function resolve(domain) {
+  console.log(`resolve: ${domain}`);
+  const nameParts = clean_check_domain(domain, false);
   let result = await contract_read("name-resolve", [
-    bufferCVFromString(DOMAIN_NAMESPACE),
-    bufferCVFromString(clean_check_domain(domain)),
+    bufferCVFromString(nameParts.namespace),
+    bufferCVFromString(nameParts.domain),
   ]);
   return result !== 2013 ? result : false;
 }
@@ -263,11 +282,13 @@ export async function update(domain, zonefile) {
   if (typeof zonefile === "object")
     zonefile = makeZoneFile(zonefile, ZONEFILE_TEMPLATE);
   let hash = await zonefile_hash(zonefile);
+
+  const nameParts = clean_check_domain(domain, false);
   return await contract_write(
     "name-update",
     [
-      bufferCVFromString(DOMAIN_NAMESPACE),
-      bufferCVFromString(clean_check_domain(domain)),
+      bufferCVFromString(nameParts.namespace),
+      bufferCVFromString(nameParts.domain),
       bufferCV(hash),
     ],
     null,

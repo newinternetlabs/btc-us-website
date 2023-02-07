@@ -270,7 +270,9 @@ export async function domain_transfer(domain, new_owner) {
 }
 
 export async function domain_update(domain, zonefile) {
-  domain = clean_check_domain(domain);
+  console.log(`domain_update: ${domain}`);
+  const nameParts = clean_check_domain(domain, false);
+  domain = `${nameParts.domain}.${nameParts.namespace}`;
   if (!(await owns(domain))) return false;
   const status = (await domain_status(domain)) || {};
   let tx_update = await update(domain, zonefile);
